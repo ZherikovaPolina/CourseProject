@@ -12,8 +12,11 @@
  * https://electronjs.org/docs/tutorial/security
  */
 
+
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import App from './App.jsx';
 import './index.css';
 
-console.log(
-  '👋 This message is being logged by the renderer process, included via Vite',
-);
+const root = createRoot(document.getElementById('root'));
+root.render(React.createElement(App));
