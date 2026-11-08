@@ -454,3 +454,18 @@ button {
   background: #fcf2f2;
   border-color: #eccccc;
 }
+ 
+.weight-error {
+  color: #c54848;
+  font-size: 12px;
+  margin: 8px 0 0;
+}
+
+.field input[aria-invalid="true"] {
+  border-color: #d77a7a;
+}
+
+.field input[aria-invalid="true"]:focus {
+  border-color: #d77a7a;
+  box-shadow: 0 0 0 3px #faeaea;
+}

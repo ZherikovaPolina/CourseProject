@@ -73,12 +73,33 @@ function App() {
     product.name.toLowerCase().includes(search.trim().toLowerCase())
   );
 
-  const weight = Number(grams);
 
-  const validWeight =
-    grams.trim() !== '' &&
-    Number.isFinite(weight) &&
-    weight > 0;
+const weight = Number(grams);
+
+function validateWeight(value) {
+  if (value.trim() === '') {
+    return 'Введіть кількість грамів.';
+  }
+
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return 'Введіть правильне числове значення.';
+  }
+
+  if (number <= 0) {
+    return 'Кількість грамів повинна бути більшою за 0.';
+  }
+
+  if (number > 10000) {
+    return 'Максимальна кількість — 10 000 г.';
+  }
+
+  return '';
+}
+
+const weightError = validateWeight(grams);
+const validWeight = weightError === '';
 
   const preview =
     selectedProduct && validWeight
@@ -98,11 +119,10 @@ function App() {
       return;
     }
 
-    if (!validWeight) {
-      setError('Введіть правильну кількість грамів.');
-      return;
-    }
-
+if (!validWeight) {
+  setError(weightError);
+  return;
+}
     const result = calculate(selectedProduct, weight);
 
     setItems(previous => [
@@ -253,17 +273,27 @@ function App() {
                 Кількість (г)
               </label>
 
-              <input
+              
+                <input
                 id="product-weight"
                 type="number"
-                min="0.1"
+                min="0.01"
+                max="10000"
                 step="any"
                 value={grams}
+                aria-invalid={!validWeight}
                 onChange={event => {
-                  setGrams(event.target.value);
-                  setError('');
+                    setGrams(event.target.value);
+                    setError('');
                 }}
-              />
+                />
+
+                {!validWeight && (
+                <p className="weight-error">
+                    {weightError}
+                </p>
+                )}
+
             </div>
 
             <div className="nutrition">
