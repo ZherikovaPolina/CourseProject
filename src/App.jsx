@@ -93,11 +93,6 @@ function App() {
           <div className="nav-item active">◉ &nbsp; Калькулятор</div>
           <div className="nav-item">▤ &nbsp; Мої продукти</div>
         </div>
-
-        <div className="sidebar-footer">
-          <p>Курсова робота</p>
-          <span>Версія 0.1.0</span>
-        </div>
       </aside>
 
       <main className="main">
@@ -109,7 +104,6 @@ function App() {
               Обирайте продукти та розраховуйте їхню харчову цінність.
             </p>
           </div>
-          <span className="status">● Локальний застосунок</span>
         </header>
 
         <div className="content-grid">
@@ -238,10 +232,6 @@ function App() {
             </div>
           </section>
         </div>
-
-        <footer className="footer">
-          CalorieCalc · Навчальний проєкт · Тестові значення продуктів
-        </footer>
       </main>
     </div>
   );
