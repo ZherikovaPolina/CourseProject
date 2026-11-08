@@ -12,38 +12,46 @@ const products = [
   { id: 8, name: 'Вівсянка', calories: 389, protein: 16.9, fat: 6.9, carbs: 66.3 }
 ];
 
-const round = (number) => Math.round(number * 10) / 10;
+const round = number => Math.round(number * 10) / 10;
+
+function calculate(product, grams) {
+  return {
+    calories: product.calories * grams / 100,
+    protein: product.protein * grams / 100,
+    fat: product.fat * grams / 100,
+    carbs: product.carbs * grams / 100
+  };
+}
 
 function App() {
   const [search, setSearch] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [grams, setGrams] = useState('100');
   const [items, setItems] = useState([]);
   const [error, setError] = useState('');
 
-  const filteredProducts = search.trim()
-    ? products.filter(product =>
-        product.name.toLowerCase().includes(search.trim().toLowerCase())
-      )
-    : [];
+  const filteredProducts = products.filter(product =>
+    product.name.toLowerCase().includes(search.trim().toLowerCase())
+  );
 
   const weight = Number(grams);
+  const validWeight =
+    grams.trim() !== '' &&
+    Number.isFinite(weight) &&
+    weight > 0;
 
-  function calculate(product, amount) {
-    return {
-      calories: round(product.calories * amount / 100),
-      protein: round(product.protein * amount / 100),
-      fat: round(product.fat * amount / 100),
-      carbs: round(product.carbs * amount / 100)
-    };
+  const preview =
+    selectedProduct && validWeight
+      ? calculate(selectedProduct, weight)
+      : null;
+
+  function selectProduct(product) {
+    setSelectedProduct(product);
+    setSearch(product.name);
+    setIsDropdownOpen(false);
+    setError('');
   }
-
-  const validWeight = grams.trim() !== '' &&
-    Number.isFinite(weight) && weight > 0;
-
-  const preview = selectedProduct && validWeight
-    ? calculate(selectedProduct, weight)
-    : null;
 
   function addProduct() {
     if (!selectedProduct) {
@@ -70,6 +78,7 @@ function App() {
 
     setSearch('');
     setSelectedProduct(null);
+    setIsDropdownOpen(false);
     setGrams('100');
     setError('');
   }
@@ -80,17 +89,20 @@ function App() {
     );
   }
 
-  const totals = items.reduce((total, item) => ({
-    calories: total.calories + item.calories,
-    protein: total.protein + item.protein,
-    fat: total.fat + item.fat,
-    carbs: total.carbs + item.carbs
-  }), {
-    calories: 0,
-    protein: 0,
-    fat: 0,
-    carbs: 0
-  });
+  const totals = items.reduce(
+    (total, item) => ({
+      calories: total.calories + item.calories,
+      protein: total.protein + item.protein,
+      fat: total.fat + item.fat,
+      carbs: total.carbs + item.carbs
+    }),
+    {
+      calories: 0,
+      protein: 0,
+      fat: 0,
+      carbs: 0
+    }
+  );
 
   return (
     <div className="app">
@@ -113,47 +125,91 @@ function App() {
           <section className="card">
             <h2>Додати продукт</h2>
 
-            <div className="field">
-              <label htmlFor="product-search">Назва продукту</label>
-              <input
-                id="product-search"
-                type="text"
-                placeholder="Введіть назву продукту"
-                value={search}
-                onChange={event => {
-                  setSearch(event.target.value);
-                  setSelectedProduct(null);
-                  setError('');
-                }}
-              />
+            <div className="field product-field">
+              <label htmlFor="product-search">
+                Продукт
+              </label>
+
+              <div className="product-select">
+                <input
+                  id="product-search"
+                  type="text"
+                  placeholder="Оберіть продукт зі списку"
+                  value={search}
+                  autoComplete="off"
+                  role="combobox"
+                  aria-expanded={isDropdownOpen}
+                  aria-controls="product-options"
+                  onFocus={() => setIsDropdownOpen(true)}
+                  onChange={event => {
+                    setSearch(event.target.value);
+                    setSelectedProduct(null);
+                    setIsDropdownOpen(true);
+                    setError('');
+                  }}
+                  onKeyDown={event => {
+                    if (event.key === 'Escape') {
+                      setIsDropdownOpen(false);
+                    }
+                  }}
+                  onBlur={() => {
+                    setIsDropdownOpen(false);
+                  }}
+                />
+
+                <button
+                  type="button"
+                  className="dropdown-arrow"
+                  aria-label="Показати список продуктів"
+                  aria-expanded={isDropdownOpen}
+                  onMouseDown={event => event.preventDefault()}
+                  onClick={() => {
+                    setIsDropdownOpen(previous => !previous);
+                  }}
+                >
+                  ▾
+                </button>
+              </div>
+
+              {isDropdownOpen && (
+                <div
+                  className="dropdown-list"
+                  id="product-options"
+                  role="listbox"
+                >
+                  {filteredProducts.length > 0 ? (
+                    filteredProducts.map(product => (
+                      <button
+                        type="button"
+                        role="option"
+                        aria-selected={
+                          selectedProduct?.id === product.id
+                        }
+                        className="dropdown-item"
+                        key={product.id}
+                        onMouseDown={event => event.preventDefault()}
+                        onClick={() => selectProduct(product)}
+                      >
+                        <span>{product.name}</span>
+                        <small>
+                          {product.calories} ккал / 100 г
+                        </small>
+                      </button>
+                    ))
+                  ) : (
+                    <p className="dropdown-empty">
+                      Продукт не знайдено
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
-            {search.trim() && !selectedProduct && (
-              <div className="search-results">
-                {filteredProducts.length > 0 ? (
-                  filteredProducts.map(product => (
-                    <button
-                      type="button"
-                      className="search-item"
-                      key={product.id}
-                      onClick={() => {
-                        setSelectedProduct(product);
-                        setSearch(product.name);
-                        setError('');
-                      }}
-                    >
-                      <span>{product.name}</span>
-                      <small>{product.calories} ккал / 100 г</small>
-                    </button>
-                  ))
-                ) : (
-                  <p className="no-results">Продукт не знайдено</p>
-                )}
-              </div>
-            )}
-
             <div className="field">
-              <label htmlFor="product-weight">Кількість (г)</label>
+              <label htmlFor="product-weight">
+                Кількість (г)
+              </label>
+
               <input
                 id="product-weight"
                 type="number"
@@ -171,27 +227,37 @@ function App() {
               <h3>Харчова цінність</h3>
 
               <div className="calories">
-                {preview ? preview.calories : '—'}
+                {preview ? round(preview.calories) : '—'}
                 <span> ккал</span>
               </div>
 
               <div className="nutrition-values">
                 <div>
                   <span>Білки</span>
-                  <strong>{preview ? preview.protein : '—'} г</strong>
+                  <strong>
+                    {preview ? round(preview.protein) : '—'} г
+                  </strong>
                 </div>
+
                 <div>
                   <span>Жири</span>
-                  <strong>{preview ? preview.fat : '—'} г</strong>
+                  <strong>
+                    {preview ? round(preview.fat) : '—'} г
+                  </strong>
                 </div>
+
                 <div>
                   <span>Вуглеводи</span>
-                  <strong>{preview ? preview.carbs : '—'} г</strong>
+                  <strong>
+                    {preview ? round(preview.carbs) : '—'} г
+                  </strong>
                 </div>
               </div>
             </div>
 
-            {error && <p className="error">{error}</p>}
+            {error && (
+              <p className="error">{error}</p>
+            )}
 
             <button
               className="add-button"
@@ -205,7 +271,9 @@ function App() {
           <section className="card">
             <div className="list-header">
               <h2>Список продуктів</h2>
-              <span className="count">{items.length}</span>
+              <span className="count">
+                {items.length}
+              </span>
             </div>
 
             <div className="product-list">
@@ -215,19 +283,25 @@ function App() {
                 </p>
               ) : (
                 items.map(item => (
-                  <div className="list-item" key={item.entryId}>
+                  <div
+                    className="list-item"
+                    key={item.entryId}
+                  >
                     <div className="item-info">
                       <strong>{item.name}</strong>
                       <span>
-                        {item.grams} г · {item.calories} ккал
+                        {item.grams} г ·{' '}
+                        {round(item.calories)} ккал
                       </span>
                     </div>
 
                     <button
                       className="delete-button"
                       type="button"
-                      onClick={() => removeProduct(item.entryId)}
                       aria-label={`Видалити ${item.name}`}
+                      onClick={() =>
+                        removeProduct(item.entryId)
+                      }
                     >
                       ×
                     </button>
@@ -247,15 +321,23 @@ function App() {
               <div className="total-values">
                 <div>
                   <span>Білки</span>
-                  <strong>{round(totals.protein)} г</strong>
+                  <strong>
+                    {round(totals.protein)} г
+                  </strong>
                 </div>
+
                 <div>
                   <span>Жири</span>
-                  <strong>{round(totals.fat)} г</strong>
+                  <strong>
+                    {round(totals.fat)} г
+                  </strong>
                 </div>
+
                 <div>
                   <span>Вуглеводи</span>
-                  <strong>{round(totals.carbs)} г</strong>
+                  <strong>
+                    {round(totals.carbs)} г
+                  </strong>
                 </div>
               </div>
             </div>
