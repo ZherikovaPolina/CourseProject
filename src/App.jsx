@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
 
+import React, { useState } from 'react';
 
 const products = [
   { id: 1, name: 'Яблуко', calories: 52, protein: 0.3, fat: 0.2, carbs: 13.8 },
@@ -74,6 +74,7 @@ function App() {
   );
 
   const weight = Number(grams);
+
   const validWeight =
     grams.trim() !== '' &&
     Number.isFinite(weight) &&
@@ -125,6 +126,10 @@ function App() {
     setItems(previous =>
       previous.filter(item => item.entryId !== entryId)
     );
+  }
+
+  function clearProducts() {
+    setItems([]);
   }
 
   const totals = items.reduce(
@@ -309,9 +314,22 @@ function App() {
           <section className="card">
             <div className="list-header">
               <h2>Список продуктів</h2>
-              <span className="count">
-                {items.length}
-              </span>
+
+              <div className="list-actions">
+                <span className="count">
+                  {items.length}
+                </span>
+
+                {items.length > 0 && (
+                  <button
+                    type="button"
+                    className="clear-button"
+                    onClick={clearProducts}
+                  >
+                    Очистити список
+                  </button>
+                )}
+              </div>
             </div>
 
             <div className="product-list">

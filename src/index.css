@@ -433,3 +433,24 @@ button {
   color: #8c988f;
   font-size: 13px;
 }
+
+.list-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.clear-button {
+  background: transparent;
+  border: 1px solid #e3e8e4;
+  border-radius: 7px;
+  padding: 8px 11px;
+  color: #a65353;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.clear-button:hover {
+  background: #fcf2f2;
+  border-color: #eccccc;
+}
