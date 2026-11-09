@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { products } from './data/products';
+import React, { useEffect, useState } from 'react';
 import { round, calculate } from './utils/calculations';
 
 function App() {
@@ -9,6 +8,48 @@ function App() {
   const [grams, setGrams] = useState('100');
   const [items, setItems] = useState([]);
   const [error, setError] = useState('');
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [productsError, setProductsError] = useState('');
+
+  useEffect(() => {
+  let cancelled = false;
+
+  async function loadProducts() {
+    try {
+      if (!window.calorieAPI?.getProducts) {
+        throw new Error('Electron API недоступний.');
+      }
+
+      const data = await window.calorieAPI.getProducts();
+
+      if (!Array.isArray(data)) {
+        throw new Error('Некоректна відповідь бази даних.');
+      }
+
+      if (!cancelled) {
+        setProducts(data);
+        setProductsError('');
+      }
+    } catch (error) {
+      console.error('Помилка завантаження продуктів:', error);
+
+      if (!cancelled) {
+        setProductsError('Не вдалося завантажити продукти з бази даних.');
+      }
+    } finally {
+      if (!cancelled) {
+        setIsLoading(false);
+      }
+    }
+  }
+
+  loadProducts();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(search.trim().toLowerCase())
@@ -181,7 +222,15 @@ if (!validWeight) {
                   id="product-options"
                   role="listbox"
                 >
-                  {filteredProducts.length > 0 ? (
+                  {isLoading ? (
+  <p className="dropdown-empty">
+    Завантаження продуктів...
+  </p>
+) : productsError ? (
+  <p className="dropdown-empty" role="alert">
+    {productsError}
+  </p>
+) : filteredProducts.length > 0 ? (
                     filteredProducts.map(product => (
                       <button
                         type="button"
