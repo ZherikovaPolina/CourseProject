@@ -10,7 +10,8 @@ import {
 import {
   getAllProducts,
   createProduct,
-  updateProduct
+  updateProduct,
+  deleteProduct
 } from './database/products.js';
 
 if (started) {
@@ -55,6 +56,10 @@ app.whenReady().then(() => {
 
 ipcMain.handle('products:update', (_event, id, product) => {
   return updateProduct(id, product);
+});
+
+ipcMain.handle('products:delete', (_event, id) => {
+  return deleteProduct(id);
 });
 
   createWindow();
