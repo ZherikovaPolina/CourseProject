@@ -524,3 +524,84 @@ button {
   opacity: 0.65;
   cursor: wait;
 }
+
+/* Редагування власних продуктів */
+
+.dropdown-product-row {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #eef1ee;
+}
+
+.dropdown-product-row:last-child {
+  border-bottom: none;
+}
+
+.dropdown-product-select {
+  flex: 1;
+  min-width: 0;
+  border-bottom: none;
+}
+
+.edit-product-button {
+  flex-shrink: 0;
+  margin-right: 10px;
+  padding: 7px 10px;
+  background: #e8f3ec;
+  color: #397c5b;
+  border: none;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.edit-product-button:hover {
+  background: #d5e9dc;
+}
+
+.edit-product-card {
+  margin-bottom: 24px;
+}
+
+.edit-nutrition-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 20px;
+}
+
+.edit-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.edit-cancel-button,
+.edit-save-button {
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.edit-cancel-button {
+  background: #ffffff;
+  color: #617267;
+  border: 1px solid #dfe5df;
+}
+
+.edit-save-button {
+  background: #438566;
+  color: #ffffff;
+  border: none;
+}
+
+.edit-save-button:hover {
+  background: #367455;
+}
+
+.edit-save-button:disabled,
+.edit-cancel-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

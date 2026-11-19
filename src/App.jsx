@@ -11,6 +11,16 @@ function App() {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [productsError, setProductsError] = useState('');
+  const [editingProduct, setEditingProduct] = useState(null);
+const [editForm, setEditForm] = useState({
+  name: '',
+  calories: '',
+  protein: '',
+  fat: '',
+  carbs: ''
+});
+const [editError, setEditError] = useState('');
+const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [showCustomForm, setShowCustomForm] = useState(false);
   const [customProduct, setCustomProduct] = useState({
     name: '', calories: '', protein: '', fat: '', carbs: ''
@@ -93,6 +103,130 @@ const validWeight = weightError === '';
     selectedProduct && validWeight
       ? calculate(selectedProduct, weight)
       : null;
+
+
+function startEditing(product) {
+  if (product.is_custom !== 1) {
+    return;
+  }
+
+  setEditingProduct(product);
+  setEditForm({
+    name: product.name,
+    calories: String(product.calories),
+    protein: String(product.protein),
+    fat: String(product.fat),
+    carbs: String(product.carbs)
+  });
+  setEditError('');
+  setIsDropdownOpen(false);
+}
+
+function cancelEditing() {
+  setEditingProduct(null);
+  setEditError('');
+}
+
+function changeEditField(field, value) {
+  setEditForm(previous => ({
+    ...previous,
+    [field]: value
+  }));
+  setEditError('');
+}
+
+async function saveEditedProduct(event) {
+  event.preventDefault();
+
+  if (!editingProduct || isSavingEdit) {
+    return;
+  }
+
+  const name = editForm.name.trim();
+
+  if (!name) {
+    setEditError('Введіть назву продукту.');
+    return;
+  }
+
+  const nutritionFields = [
+    'calories',
+    'protein',
+    'fat',
+    'carbs'
+  ];
+
+  for (const field of nutritionFields) {
+    const value = editForm[field].trim();
+    const number = Number(value);
+
+    if (
+      value === '' ||
+      !Number.isFinite(number) ||
+      number < 0
+    ) {
+      setEditError(
+        'Усі харчові значення мають бути числами від 0.'
+      );
+      return;
+    }
+  }
+
+  const updatedData = {
+    name,
+    calories: Number(editForm.calories),
+    protein: Number(editForm.protein),
+    fat: Number(editForm.fat),
+    carbs: Number(editForm.carbs)
+  };
+
+  if (
+    products.some(
+      product =>
+        product.id !== editingProduct.id &&
+        product.name.toLowerCase() === name.toLowerCase()
+    )
+  ) {
+    setEditError('Продукт із такою назвою вже існує.');
+    return;
+  }
+
+  setIsSavingEdit(true);
+
+  try {
+    const updated = await window.calorieAPI.updateProduct(
+      editingProduct.id,
+      updatedData
+    );
+
+    if (!updated) {
+      throw new Error('Продукт не знайдено.');
+    }
+
+    setProducts(previous =>
+      previous
+        .map(product =>
+          product.id === updated.id ? updated : product
+        )
+        .sort((a, b) => a.name.localeCompare(b.name, 'uk'))
+    );
+
+    if (selectedProduct?.id === updated.id) {
+      setSelectedProduct(updated);
+      setSearch(updated.name);
+    }
+
+    setEditingProduct(null);
+    setEditError('');
+  } catch (error) {
+    console.error('Помилка редагування:', error);
+    setEditError(
+      'Не вдалося зберегти зміни. Перевірте назву продукту.'
+    );
+  } finally {
+    setIsSavingEdit(false);
+  }
+}
 
   function selectProduct(product) {
     setSelectedProduct(product);
@@ -227,6 +361,79 @@ if (!validWeight) {
           </p>
         </div>
 
+
+{editingProduct && (
+  <section className="card edit-product-card">
+    <h2>Редагувати продукт</h2>
+
+    <form onSubmit={saveEditedProduct}>
+      <div className="field">
+        <label htmlFor="edit-name">Назва продукту</label>
+        <input
+          id="edit-name"
+          type="text"
+          value={editForm.name}
+          onChange={event =>
+            changeEditField('name', event.target.value)
+          }
+        />
+      </div>
+
+      <div className="edit-nutrition-grid">
+        {[
+          ['calories', 'Калорійність (ккал)'],
+          ['protein', 'Білки (г)'],
+          ['fat', 'Жири (г)'],
+          ['carbs', 'Вуглеводи (г)']
+        ].map(([field, label]) => (
+          <div className="field" key={field}>
+            <label htmlFor={`edit-${field}`}>
+              {label} на 100 г
+            </label>
+            <input
+              id={`edit-${field}`}
+              type="number"
+              min="0"
+              step="any"
+              value={editForm[field]}
+              onChange={event =>
+                changeEditField(field, event.target.value)
+              }
+            />
+          </div>
+        ))}
+      </div>
+
+      {editError && (
+        <p className="error" role="alert">
+          {editError}
+        </p>
+      )}
+
+      <div className="edit-form-actions">
+        <button
+          type="button"
+          className="edit-cancel-button"
+          onClick={cancelEditing}
+          disabled={isSavingEdit}
+        >
+          Скасувати
+        </button>
+
+        <button
+          type="submit"
+          className="edit-save-button"
+          disabled={isSavingEdit}
+        >
+          {isSavingEdit
+            ? 'Збереження...'
+            : 'Зберегти зміни'}
+        </button>
+      </div>
+    </form>
+  </section>
+)}
+
         <div className="content">
           <section className="card">
             <h2>Додати продукт</h2>
@@ -304,10 +511,32 @@ if (!validWeight) {
                         onMouseDown={event => event.preventDefault()}
                         onClick={() => selectProduct(product)}
                       >
-                        <span>{product.name}</span>
-                        <small>
-                          {product.calories} ккал / 100 г
-                        </small>
+                        
+<div className="dropdown-product-row" key={product.id}>
+  <button
+    type="button"
+    role="option"
+    aria-selected={selectedProduct?.id === product.id}
+    className="dropdown-item dropdown-product-select"
+    onMouseDown={event => event.preventDefault()}
+    onClick={() => selectProduct(product)}
+  >
+    <span>{product.name}</span>
+    <small>{product.calories} ккал / 100 г</small>
+  </button>
+
+  {product.is_custom === 1 && (
+    <button
+      type="button"
+      className="edit-product-button"
+      onMouseDown={event => event.preventDefault()}
+      onClick={() => startEditing(product)}
+      aria-label={`Редагувати ${product.name}`}
+    >
+      Редагувати
+    </button>
+  )}
+</div>
                       </button>
                     ))
                   ) : (
