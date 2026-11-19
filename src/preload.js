@@ -10,5 +10,18 @@ contextBridge.exposeInMainWorld('calorieAPI', {
     ipcRenderer.invoke('products:update', id, product),
 
   deleteProduct: (id) =>
-  ipcRenderer.invoke('products:delete', id)
+  ipcRenderer.invoke('products:delete', id),
+
+getCalculationItems: () =>
+  ipcRenderer.invoke('calculation:getAll'),
+
+saveCalculationItem: (item) =>
+  ipcRenderer.invoke('calculation:add', item),
+
+deleteCalculationItem: (entryId) =>
+  ipcRenderer.invoke('calculation:delete', entryId),
+
+clearCalculationItems: () =>
+  ipcRenderer.invoke('calculation:clear')
+
 });

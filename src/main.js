@@ -14,6 +14,14 @@ import {
   deleteProduct
 } from './database/products.js';
 
+import {
+  getCalculationItems,
+  saveCalculationItem,
+  deleteCalculationItem,
+  clearCalculationItems
+} from './database/calculationItems.js';
+
+
 if (started) {
   app.quit();
 }
@@ -61,6 +69,23 @@ ipcMain.handle('products:update', (_event, id, product) => {
 ipcMain.handle('products:delete', (_event, id) => {
   return deleteProduct(id);
 });
+
+  ipcMain.handle('calculation:getAll', () => {
+    return getCalculationItems();
+  });
+
+  ipcMain.handle('calculation:add', (_event, item) => {
+    return saveCalculationItem(item);
+  });
+
+  ipcMain.handle('calculation:delete', (_event, entryId) => {
+    return deleteCalculationItem(entryId);
+  });
+
+  ipcMain.handle('calculation:clear', () => {
+    return clearCalculationItems();
+  });
+
 
   createWindow();
 

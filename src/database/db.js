@@ -60,6 +60,20 @@ export function initializeDatabase(userDataPath) {
 
     seedProducts(db);
 
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS calculation_items (
+    id TEXT PRIMARY KEY,
+    product_id INTEGER,
+    name TEXT NOT NULL,
+    grams REAL NOT NULL CHECK (grams > 0),
+    calories REAL NOT NULL,
+    protein REAL NOT NULL,
+    fat REAL NOT NULL,
+    carbs REAL NOT NULL
+  );
+`);
+
     for (const product of defaultProducts) {
       markDefault.run(product.name);
     }

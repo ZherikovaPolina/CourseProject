@@ -7,6 +7,8 @@ function App() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [grams, setGrams] = useState('100');
   const [items, setItems] = useState([]);
+  const [isLoadingItems, setIsLoadingItems] = useState(true);
+const [itemsError, setItemsError] = useState('');
   const [error, setError] = useState('');
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -66,6 +68,44 @@ const [isSavingEdit, setIsSavingEdit] = useState(false);
     cancelled = true;
   };
 }, []);
+
+
+useEffect(() => {
+  let cancelled = false;
+
+  async function loadCalculationItems() {
+    try {
+      const savedItems =
+        await window.calorieAPI.getCalculationItems();
+
+      if (!Array.isArray(savedItems)) {
+        throw new Error('Некоректні дані списку.');
+      }
+
+      if (!cancelled) {
+        setItems(savedItems);
+        setItemsError('');
+      }
+    } catch (error) {
+      console.error('Помилка завантаження списку:', error);
+
+      if (!cancelled) {
+        setItemsError('Не вдалося завантажити збережений список.');
+      }
+    } finally {
+      if (!cancelled) {
+        setIsLoadingItems(false);
+      }
+    }
+  }
+
+  loadCalculationItems();
+
+  return () => {
+    cancelled = true;
+  };
+}, []);
+
 
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(search.trim().toLowerCase())
@@ -283,34 +323,49 @@ async function saveEditedProduct(event) {
     setError('');
   }
 
-  function addProduct() {
-    if (!selectedProduct) {
-      setError('Спочатку виберіть продукт.');
-      return;
-    }
 
-if (!validWeight) {
-  setError(weightError);
-  return;
-}
-    const result = calculate(selectedProduct, weight);
+async function addProduct() {
+  if (isLoadingItems || itemsError) {
+    setError('Список ще не готовий до змін.');
+    return;
+  }
 
-    setItems(previous => [
-      ...previous,
-      {
-        ...result,
-        entryId: crypto.randomUUID(),
-        name: selectedProduct.name,
-        grams: weight
-      }
-    ]);
+  if (!selectedProduct) {
+    setError('Спочатку виберіть продукт.');
+    return;
+  }
+
+  if (!validWeight) {
+    setError(weightError);
+    return;
+  }
+
+  const result = calculate(selectedProduct, weight);
+
+  const newItem = {
+    ...result,
+    entryId: crypto.randomUUID(),
+    productId: selectedProduct.id,
+    name: selectedProduct.name,
+    grams: weight
+  };
+
+  try {
+    await window.calorieAPI.saveCalculationItem(newItem);
+
+    setItems(previous => [...previous, newItem]);
 
     setSearch('');
     setSelectedProduct(null);
     setIsDropdownOpen(false);
     setGrams('100');
     setError('');
+  } catch (error) {
+    console.error('Помилка збереження продукту:', error);
+    setError('Не вдалося зберегти продукт у списку.');
   }
+}
+
 
   function updateCustomProduct(field, value) {
     setCustomProduct(previous => ({ ...previous, [field]: value }));
@@ -367,15 +422,44 @@ if (!validWeight) {
     }
   }
 
-  function removeProduct(entryId) {
+ 
+async function removeProduct(entryId) {
+  if (isLoadingItems || itemsError) {
+    return;
+  }
+
+  try {
+    const deleted =
+      await window.calorieAPI.deleteCalculationItem(entryId);
+
+    if (!deleted) {
+      throw new Error('Запис не знайдено.');
+    }
+
     setItems(previous =>
       previous.filter(item => item.entryId !== entryId)
     );
+  } catch (error) {
+    console.error('Помилка видалення зі списку:', error);
+    setItemsError('Не вдалося видалити запис зі списку.');
+  }
+}
+
+
+async function clearProducts() {
+  if (isLoadingItems || itemsError) {
+    return;
   }
 
-  function clearProducts() {
+  try {
+    await window.calorieAPI.clearCalculationItems();
+
     setItems([]);
+  } catch (error) {
+    console.error('Помилка очищення списку:', error);
+    setItemsError('Не вдалося очистити список.');
   }
+}
 
   const totals = items.reduce(
     (total, item) => ({
@@ -729,6 +813,7 @@ filteredProducts.map(product => (
               className="add-button"
               type="button"
               onClick={addProduct}
+              disabled={isLoadingItems || Boolean(itemsError)}
             >
               Додати продукт
             </button>
@@ -748,12 +833,23 @@ filteredProducts.map(product => (
                     type="button"
                     className="clear-button"
                     onClick={clearProducts}
+                    disabled={isLoadingItems || Boolean(itemsError)}
                   >
                     Очистити список
                   </button>
                 )}
               </div>
             </div>
+
+            {isLoadingItems && (
+  <p className="no-results">Завантаження списку...</p>
+)}
+
+{itemsError && (
+  <p className="error" role="alert">
+    {itemsError}
+  </p>
+)}
 
             <div className="product-list">
               {items.length === 0 ? (
@@ -778,6 +874,7 @@ filteredProducts.map(product => (
                       className="delete-button"
                       type="button"
                       aria-label={`Видалити ${item.name}`}
+                      disabled={isLoadingItems || Boolean(itemsError)}
                       onClick={() =>
                         removeProduct(item.entryId)
                       }
