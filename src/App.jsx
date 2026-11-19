@@ -499,46 +499,40 @@ if (!validWeight) {
     {productsError}
   </p>
 ) : filteredProducts.length > 0 ? (
-                    filteredProducts.map(product => (
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={
-                          selectedProduct?.id === product.id
-                        }
-                        className="dropdown-item"
-                        key={product.id}
-                        onMouseDown={event => event.preventDefault()}
-                        onClick={() => selectProduct(product)}
-                      >
-                        
-<div className="dropdown-product-row" key={product.id}>
-  <button
-    type="button"
-    role="option"
-    aria-selected={selectedProduct?.id === product.id}
-    className="dropdown-item dropdown-product-select"
-    onMouseDown={event => event.preventDefault()}
-    onClick={() => selectProduct(product)}
+                    
+filteredProducts.map(product => (
+  <div
+    className="dropdown-product-row"
+    key={product.id}
   >
-    <span>{product.name}</span>
-    <small>{product.calories} ккал / 100 г</small>
-  </button>
-
-  {product.is_custom === 1 && (
     <button
       type="button"
-      className="edit-product-button"
+      role="option"
+      aria-selected={selectedProduct?.id === product.id}
+      className="dropdown-item dropdown-product-select"
       onMouseDown={event => event.preventDefault()}
-      onClick={() => startEditing(product)}
-      aria-label={`Редагувати ${product.name}`}
+      onClick={() => selectProduct(product)}
     >
-      Редагувати
+      <span>{product.name}</span>
+      <small>
+        {product.calories} ккал / 100 г
+      </small>
     </button>
-  )}
-</div>
-                      </button>
-                    ))
+
+    {product.is_custom === 1 && (
+      <button
+        type="button"
+        className="edit-product-button"
+        onMouseDown={event => event.preventDefault()}
+        onClick={() => startEditing(product)}
+        aria-label={`Редагувати ${product.name}`}
+      >
+        Редагувати
+      </button>
+    )}
+  </div>
+))
+
                   ) : (
                     <p className="dropdown-empty">
                       Продукт не знайдено
