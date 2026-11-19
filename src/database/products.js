@@ -10,7 +10,8 @@ export function getAllProducts() {
       calories,
       protein,
       fat,
-      carbs
+      carbs,
+      is_custom
     FROM products
     ORDER BY name COLLATE NOCASE ASC
   `);
@@ -28,7 +29,8 @@ export function getProductById(id) {
       calories,
       protein,
       fat,
-      carbs
+      carbs,
+      is_custom
     FROM products
     WHERE id = ?
   `);
@@ -83,7 +85,7 @@ export function updateProduct(id, product) {
       protein = ?,
       fat = ?,
       carbs = ?
-    WHERE id = ?
+    WHERE id = ? AND is_custom = 1
   `);
 
   const result = statement.run(
