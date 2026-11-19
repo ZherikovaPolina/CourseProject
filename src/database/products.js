@@ -103,3 +103,16 @@ export function updateProduct(id, product) {
 
   return getProductById(id);
 }
+
+export function deleteProduct(id) {
+  const database = getDatabase();
+
+  const statement = database.prepare(`
+    DELETE FROM products
+    WHERE id = ? AND is_custom = 1
+  `);
+
+  const result = statement.run(id);
+
+  return result.changes > 0;
+}
