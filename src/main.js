@@ -1,4 +1,3 @@
-
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
@@ -10,7 +9,8 @@ import {
 
 import {
   getAllProducts,
-  createProduct
+  createProduct,
+  updateProduct
 } from './database/products.js';
 
 if (started) {
@@ -48,9 +48,13 @@ app.whenReady().then(() => {
   ipcMain.handle('products:getAll', () => {
     return getAllProducts();
   });
-  
+
   ipcMain.handle('products:create', (_event, product) => {
   return createProduct(product);
+});
+
+ipcMain.handle('products:update', (_event, id, product) => {
+  return updateProduct(id, product);
 });
 
   createWindow();
