@@ -8,7 +8,10 @@ import {
   closeDatabase
 } from './database/db.js';
 
-import { getAllProducts } from './database/products.js';
+import {
+  getAllProducts,
+  createProduct
+} from './database/products.js';
 
 if (started) {
   app.quit();
@@ -45,6 +48,10 @@ app.whenReady().then(() => {
   ipcMain.handle('products:getAll', () => {
     return getAllProducts();
   });
+  
+  ipcMain.handle('products:create', (_event, product) => {
+  return createProduct(product);
+});
 
   createWindow();
 
