@@ -11,6 +11,12 @@ function App() {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [productsError, setProductsError] = useState('');
+  const [showCustomForm, setShowCustomForm] = useState(false);
+  const [customProduct, setCustomProduct] = useState({
+    name: '', calories: '', protein: '', fat: '', carbs: ''
+  });
+  const [customError, setCustomError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
   let cancelled = false;
@@ -122,6 +128,61 @@ if (!validWeight) {
     setIsDropdownOpen(false);
     setGrams('100');
     setError('');
+  }
+
+  function updateCustomProduct(field, value) {
+    setCustomProduct(previous => ({ ...previous, [field]: value }));
+    setCustomError('');
+  }
+
+  async function saveCustomProduct(event) {
+    event.preventDefault();
+    if (isSaving) return;
+
+    const name = customProduct.name.trim();
+    if (!name || name.length > 100) {
+      setCustomError('Назва повинна містити від 1 до 100 символів.');
+      return;
+    }
+
+    if (products.some(product => product.name.toLocaleLowerCase('uk') === name.toLocaleLowerCase('uk'))) {
+      setCustomError('Продукт із такою назвою вже існує.');
+      return;
+    }
+
+    const nutrition = {};
+    for (const field of ['calories', 'protein', 'fat', 'carbs']) {
+      const value = customProduct[field].trim();
+      const number = Number(value);
+      if (value === '' || !Number.isFinite(number) || number < 0 || number > 1000) {
+        setCustomError('Усі харчові показники мають бути числами від 0 до 1000.');
+        return;
+      }
+      nutrition[field] = number;
+    }
+
+    setIsSaving(true);
+    setCustomError('');
+    try {
+      const created = await window.calorieAPI.createProduct({ name, ...nutrition });
+      if (!created || typeof created.id !== 'number') {
+        throw new Error('Некоректна відповідь бази даних.');
+      }
+      const updated = await window.calorieAPI.getProducts();
+      if (!Array.isArray(updated)) {
+        throw new Error('Не вдалося оновити список продуктів.');
+      }
+      setProducts(updated);
+      setProductsError('');
+      selectProduct(created);
+      setCustomProduct({ name: '', calories: '', protein: '', fat: '', carbs: '' });
+      setShowCustomForm(false);
+    } catch (error) {
+      console.error('Помилка збереження продукту:', error);
+      setCustomError('Не вдалося зберегти продукт. Перевірте, чи немає продукту з такою назвою.');
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   function removeProduct(entryId) {
@@ -257,6 +318,64 @@ if (!validWeight) {
                 </div>
               )}
             </div>
+
+            <button
+              type="button"
+              className="custom-toggle-button"
+              aria-expanded={showCustomForm}
+              onClick={() => {
+                setShowCustomForm(previous => !previous);
+                setCustomError('');
+                setIsDropdownOpen(false);
+              }}
+            >
+              {showCustomForm ? 'Сховати форму' : '+ Створити власний продукт'}
+            </button>
+
+            {showCustomForm && (
+              <form className="custom-product-form" onSubmit={saveCustomProduct}>
+                <h3>Новий продукт</h3>
+                <p className="custom-form-hint">Вкажіть харчову цінність на 100 г.</p>
+                <div className="field">
+                  <label htmlFor="custom-name">Назва продукту</label>
+                  <input
+                    id="custom-name"
+                    type="text"
+                    maxLength={100}
+                    required
+                    value={customProduct.name}
+                    placeholder="Наприклад, Домашній салат"
+                    onChange={event => updateCustomProduct('name', event.target.value)}
+                  />
+                </div>
+                <div className="custom-fields-grid">
+                  {[
+                    { key: 'calories', label: 'Калорійність (ккал)' },
+                    { key: 'protein', label: 'Білки (г)' },
+                    { key: 'fat', label: 'Жири (г)' },
+                    { key: 'carbs', label: 'Вуглеводи (г)' }
+                  ].map(field => (
+                    <div className="field" key={field.key}>
+                      <label htmlFor={`custom-${field.key}`}>{field.label}</label>
+                      <input
+                        id={`custom-${field.key}`}
+                        type="number"
+                        min="0"
+                        max="1000"
+                        step="any"
+                        required
+                        value={customProduct[field.key]}
+                        onChange={event => updateCustomProduct(field.key, event.target.value)}
+                      />
+                    </div>
+                  ))}
+                </div>
+                {customError && <p className="error" role="alert">{customError}</p>}
+                <button type="submit" className="add-button" disabled={isSaving}>
+                  {isSaving ? 'Збереження...' : 'Зберегти продукт'}
+                </button>
+              </form>
+            )}
 
             <div className="field">
               <label htmlFor="product-weight">

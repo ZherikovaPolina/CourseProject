@@ -469,3 +469,58 @@ button {
   border-color: #d77a7a;
   box-shadow: 0 0 0 3px #faeaea;
 }
+
+.custom-toggle-button {
+  display: block;
+  width: 100%;
+  margin: -8px 0 22px;
+  padding: 11px 14px;
+  background: #f3f8f4;
+  color: #397c5b;
+  border: 1px solid #dcebe0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.custom-toggle-button:hover {
+  background: #e9f3ec;
+}
+
+.custom-product-form {
+  margin-bottom: 24px;
+  padding: 20px;
+  border: 1px solid #e2eae3;
+  border-radius: 10px;
+  background: #fafcfb;
+}
+
+.custom-product-form h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.custom-form-hint {
+  margin: 0 0 20px;
+  color: #87918a;
+  font-size: 12px;
+}
+
+.custom-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 14px;
+}
+
+.custom-product-form .field {
+  margin-bottom: 16px;
+}
+
+.custom-product-form .add-button {
+  margin-top: 8px;
+}
+
+.custom-product-form .add-button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
