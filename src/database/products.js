@@ -71,3 +71,33 @@ export function createProduct(product) {
 
   return getProductById(Number(result.lastInsertRowid));
 }
+
+export function updateProduct(id, product) {
+  const database = getDatabase();
+
+  const statement = database.prepare(`
+    UPDATE products
+    SET
+      name = ?,
+      calories = ?,
+      protein = ?,
+      fat = ?,
+      carbs = ?
+    WHERE id = ?
+  `);
+
+  const result = statement.run(
+    product.name,
+    product.calories,
+    product.protein,
+    product.fat,
+    product.carbs,
+    id
+  );
+
+  if (result.changes === 0) {
+    return null;
+  }
+
+  return getProductById(id);
+}
