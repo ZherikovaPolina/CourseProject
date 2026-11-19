@@ -605,3 +605,30 @@ button {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.custom-product-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: 8px;
+}
+
+.custom-product-actions .edit-product-button {
+  margin-right: 0;
+}
+
+.remove-custom-button {
+  flex-shrink: 0;
+  padding: 7px 10px;
+  background: #f8eeee;
+  color: #bd5555;
+  border: none;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.remove-custom-button:hover {
+  background: #f2dddd;
+}
+

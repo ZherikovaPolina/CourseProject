@@ -105,6 +105,54 @@ const validWeight = weightError === '';
       : null;
 
 
+
+async function deleteCustomProduct(product) {
+  if (product.is_custom !== 1) {
+    return;
+  }
+
+  const confirmed = window.confirm(
+    `Видалити продукт «${product.name}» із бази даних?`
+  );
+
+  if (!confirmed) {
+    return;
+  }
+
+  try {
+    if (!window.calorieAPI?.deleteProduct) {
+      throw new Error('Функція видалення недоступна.');
+    }
+
+    const deleted = await window.calorieAPI.deleteProduct(
+      product.id
+    );
+
+    if (!deleted) {
+      throw new Error('Продукт не знайдено.');
+    }
+
+    setProducts(previous =>
+      previous.filter(item => item.id !== product.id)
+    );
+
+    if (selectedProduct?.id === product.id) {
+      setSelectedProduct(null);
+      setSearch('');
+    }
+
+    if (editingProduct?.id === product.id) {
+      setEditingProduct(null);
+    }
+
+    setIsDropdownOpen(false);
+    setError('');
+  } catch (error) {
+    console.error('Помилка видалення продукту:', error);
+    setProductsError('Не вдалося видалити продукт.');
+  }
+}
+
 function startEditing(product) {
   if (product.is_custom !== 1) {
     return;
@@ -519,17 +567,30 @@ filteredProducts.map(product => (
       </small>
     </button>
 
-    {product.is_custom === 1 && (
-      <button
-        type="button"
-        className="edit-product-button"
-        onMouseDown={event => event.preventDefault()}
-        onClick={() => startEditing(product)}
-        aria-label={`Редагувати ${product.name}`}
-      >
-        Редагувати
-      </button>
-    )}
+    
+{product.is_custom === 1 && (
+  <div className="custom-product-actions">
+    <button
+      type="button"
+      className="edit-product-button"
+      onMouseDown={event => event.preventDefault()}
+      onClick={() => startEditing(product)}
+      aria-label={`Редагувати ${product.name}`}
+    >
+      Редагувати
+    </button>
+
+    <button
+      type="button"
+      className="remove-custom-button"
+      onMouseDown={event => event.preventDefault()}
+      onClick={() => deleteCustomProduct(product)}
+      aria-label={`Видалити ${product.name} з бази даних`}
+    >
+      Видалити
+    </button>
+  </div>
+)}
   </div>
 ))
 
