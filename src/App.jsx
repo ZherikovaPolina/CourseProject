@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { round, calculate } from './utils/calculations';
 import ProfileCard from './components/ProfileCard';
+import DailyProgress from './components/DailyProgress';
 
 function App() {
   const [search, setSearch] = useState('');
@@ -567,6 +568,7 @@ async function clearProducts() {
   </section>
 )}
 <ProfileCard />
+<DailyProgress totals={totals} />
         <div className="content">
           <section className="card">
             <h2>Додати продукт</h2>

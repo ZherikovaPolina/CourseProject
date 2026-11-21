@@ -126,6 +126,11 @@ export default function ProfileCard() {
       });
 
       setDailyGoals(saved.dailyGoals);
+      window.dispatchEvent(
+  new CustomEvent('caloriecalc:profile-updated', {
+    detail: { dailyGoals: saved.dailyGoals },
+  })
+);
       setSuccess('Профіль успішно збережено!');
     } catch (err) {
       console.error('Помилка збереження профілю:', err);
