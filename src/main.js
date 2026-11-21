@@ -1,6 +1,5 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
-import started from 'electron-squirrel-startup';
 
 import {
   initializeDatabase,
@@ -20,11 +19,6 @@ import {
   deleteCalculationItem,
   clearCalculationItems
 } from './database/calculationItems.js';
-
-
-if (started) {
-  app.quit();
-}
 
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
