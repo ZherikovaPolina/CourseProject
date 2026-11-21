@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { round, calculate } from './utils/calculations';
 import ProfileCard from './components/ProfileCard';
 import DailyProgress from './components/DailyProgress';
@@ -18,6 +18,7 @@ function getToday() {
 function App() {
     const [selectedDate, setSelectedDate] = useState(getToday);
 const [selectedMeal, setSelectedMeal] = useState('breakfast');
+const addProductRef = useRef(null);
   const [search, setSearch] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -497,6 +498,15 @@ async function clearProducts() {
     }
   );
 
+  function handleAddToMeal(mealType) {
+  setSelectedMeal(mealType);
+
+  addProductRef.current?.scrollIntoView({
+    behavior: 'smooth',
+    block: 'start',
+  });
+}
+
   return (
     <div className="app">
       <header className="header">
@@ -595,8 +605,8 @@ async function clearProducts() {
 
 <DailyProgress totals={totals} />
         <div className="content">
-          <section className="card">
-            <h2>Додати продукт</h2>
+          <section className="card" ref={addProductRef}>
+  <h2>Додати продукт</h2>
             <div className="field">
   <label htmlFor="selected-meal">Прийом їжі</label>
 
@@ -895,9 +905,10 @@ filteredProducts.map(product => (
   </p>
 )}
 
-           <MealSections
+<MealSections
   items={items}
   onDelete={removeProduct}
+  onAddToMeal={handleAddToMeal}
   disabled={isLoadingItems || Boolean(itemsError)}
 />
             <div className="total">

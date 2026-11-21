@@ -12,6 +12,7 @@ export const MEALS = [
 export default function MealSections({
   items,
   onDelete,
+  onAddToMeal,
   disabled,
 }) {
   return (
@@ -65,6 +66,15 @@ export default function MealSections({
                 </div>
               ))
             )}
+            <button
+  type="button"
+  className="meal-add-button"
+  disabled={disabled}
+  onClick={() => onAddToMeal(meal.id)}
+>
+  <span aria-hidden="true">＋</span>
+  Додати продукт
+</button>
           </section>
         );
       })}

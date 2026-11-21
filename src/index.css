@@ -1016,3 +1016,35 @@ button {
     width: 100%;
   }
 }
+
+.meal-add-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: 1px solid #cfe4d5;
+  border-radius: 8px;
+  background: #f0f8f2;
+  color: #397c5b;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.meal-add-button:hover:not(:disabled) {
+  background: #dff0e4;
+}
+
+.meal-add-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.meal-add-button span {
+  font-size: 18px;
+  line-height: 1;
+}
