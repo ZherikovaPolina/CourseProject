@@ -70,9 +70,9 @@ ipcMain.handle('products:delete', (_event, id) => {
   return deleteProduct(id);
 });
 
-  ipcMain.handle('calculation:getAll', () => {
-    return getCalculationItems();
-  });
+  ipcMain.handle('calculation:getAll', (_event, date) => {
+  return getCalculationItems(date);
+});
 
   ipcMain.handle('calculation:add', (_event, item) => {
     return saveCalculationItem(item);
@@ -82,9 +82,9 @@ ipcMain.handle('products:delete', (_event, id) => {
     return deleteCalculationItem(entryId);
   });
 
-  ipcMain.handle('calculation:clear', () => {
-    return clearCalculationItems();
-  });
+ipcMain.handle('calculation:clear', (_event, date) => {
+  return clearCalculationItems(date);
+});
 
 
   ipcMain.handle('profile:get', () => {

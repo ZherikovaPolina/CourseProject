@@ -61,18 +61,73 @@ export function initializeDatabase(userDataPath) {
     seedProducts(db);
 
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS calculation_items (
-    id TEXT PRIMARY KEY,
-    product_id INTEGER,
-    name TEXT NOT NULL,
-    grams REAL NOT NULL CHECK (grams > 0),
-    calories REAL NOT NULL,
-    protein REAL NOT NULL,
-    fat REAL NOT NULL,
-    carbs REAL NOT NULL
-  );
-`);
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS calculation_items (
+        id TEXT PRIMARY KEY,
+        product_id INTEGER,
+        name TEXT NOT NULL,
+        grams REAL NOT NULL CHECK (grams > 0),
+        calories REAL NOT NULL,
+        protein REAL NOT NULL,
+        fat REAL NOT NULL,
+        carbs REAL NOT NULL,
+        entry_date TEXT NOT NULL
+          CHECK (
+            entry_date GLOB '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
+          ),
+        meal_type TEXT NOT NULL DEFAULT 'breakfast'
+          CHECK (
+            meal_type IN (
+              'breakfast',
+              'snack1',
+              'lunch',
+              'snack2',
+              'dinner'
+            )
+          )
+      );
+    `);
+
+    const calculationColumns = db.prepare(
+      'PRAGMA table_info(calculation_items)'
+    ).all();
+
+    const migrationDate = new Date().toLocaleDateString('en-CA');
+
+    if (
+      !calculationColumns.some(
+        column => column.name === 'entry_date'
+      )
+    ) {
+      db.exec(`
+        ALTER TABLE calculation_items
+        ADD COLUMN entry_date TEXT
+      `);
+
+      db.prepare(`
+        UPDATE calculation_items
+        SET entry_date = ?
+        WHERE entry_date IS NULL
+      `).run(migrationDate);
+    }
+
+    if (
+      !calculationColumns.some(
+        column => column.name === 'meal_type'
+      )
+    ) {
+      db.exec(`
+        ALTER TABLE calculation_items
+        ADD COLUMN meal_type TEXT NOT NULL DEFAULT 'breakfast'
+      `);
+    }
+
+    db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_calculation_items_date
+      ON calculation_items(entry_date);
+    `);
+
 
     for (const product of defaultProducts) {
       markDefault.run(product.name);
