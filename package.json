@@ -1,9 +1,9 @@
 {
   "name": "courseproject",
-  "productName": "courseproject",
+  "productName": "CalorieCalc",
   "version": "1.0.0",
   "private": true,
-  "description": "My Electron application description",
+  "description": "CalorieCalc - калькулятор калорій та харчової цінності продуктів",
   "keywords": [],
   "license": "MIT",
   "author": {
