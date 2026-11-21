@@ -1,4 +1,8 @@
 import { getDatabase } from './db.js';
+import {
+  validateId,
+  validateProduct
+} from './validation.js';
 
 export function getAllProducts() {
   const database = getDatabase();
@@ -49,8 +53,21 @@ export function getProductsCount() {
   return statement.get().count;
 }
 
+
 export function createProduct(product) {
+  const valid = validateProduct(product);
   const database = getDatabase();
+
+ 
+const duplicate = getAllProducts().some(
+  existing =>
+    existing.name.toLocaleLowerCase('uk') ===
+    valid.name.toLocaleLowerCase('uk')
+);
+
+if (duplicate) {
+  throw new Error('Продукт із такою назвою вже існує.');
+}
 
   const statement = database.prepare(`
     INSERT INTO products (
@@ -64,18 +81,35 @@ export function createProduct(product) {
   `);
 
   const result = statement.run(
-    product.name,
-    product.calories,
-    product.protein,
-    product.fat,
-    product.carbs
+    valid.name,
+    valid.calories,
+    valid.protein,
+    valid.fat,
+    valid.carbs
   );
 
   return getProductById(Number(result.lastInsertRowid));
 }
 
+
+
 export function updateProduct(id, product) {
+  validateId(id);
+  const valid = validateProduct(product);
   const database = getDatabase();
+
+
+const duplicate = getAllProducts().some(
+  existing =>
+    existing.id !== id &&
+    existing.name.toLocaleLowerCase('uk') ===
+      valid.name.toLocaleLowerCase('uk')
+);
+
+
+  if (duplicate) {
+    throw new Error('Продукт із такою назвою вже існує.');
+  }
 
   const statement = database.prepare(`
     UPDATE products
@@ -89,11 +123,11 @@ export function updateProduct(id, product) {
   `);
 
   const result = statement.run(
-    product.name,
-    product.calories,
-    product.protein,
-    product.fat,
-    product.carbs,
+    valid.name,
+    valid.calories,
+    valid.protein,
+    valid.fat,
+    valid.carbs,
     id
   );
 
@@ -104,7 +138,10 @@ export function updateProduct(id, product) {
   return getProductById(id);
 }
 
+
 export function deleteProduct(id) {
+  validateId(id);
+
   const database = getDatabase();
 
   const statement = database.prepare(`

@@ -356,3 +356,155 @@ test('очищення всього списку розрахунків прац
     cleanup(directory);
   }
 });
+
+
+test('не можна створити продукт із порожньою назвою', () => {
+  const directory = createTestDirectory();
+
+  try {
+    initializeDatabase(directory);
+
+    assert.throws(() => createProduct({
+      name: '   ',
+      calories: 100,
+      protein: 5,
+      fat: 2,
+      carbs: 10
+    }));
+
+    assert.equal(getProductsCount(), 40);
+  } finally {
+    cleanup(directory);
+  }
+});
+
+test('не можна створити продукт із від’ємними калоріями', () => {
+  const directory = createTestDirectory();
+
+  try {
+    initializeDatabase(directory);
+
+    assert.throws(() => createProduct({
+      name: 'Некоректний продукт',
+      calories: -50,
+      protein: 5,
+      fat: 2,
+      carbs: 10
+    }));
+
+    assert.equal(getProductsCount(), 40);
+  } finally {
+    cleanup(directory);
+  }
+});
+
+test('не можна створити продукт із текстом замість числа', () => {
+  const directory = createTestDirectory();
+
+  try {
+    initializeDatabase(directory);
+
+    assert.throws(() => createProduct({
+      name: 'Некоректний продукт',
+      calories: 'abc',
+      protein: 5,
+      fat: 2,
+      carbs: 10
+    }));
+  } finally {
+    cleanup(directory);
+  }
+});
+
+test('не можна створити продукт із назвою-дублікатом', () => {
+  const directory = createTestDirectory();
+
+  try {
+    initializeDatabase(directory);
+
+    const product = {
+      name: 'Тестовий продукт',
+      calories: 100,
+      protein: 5,
+      fat: 2,
+      carbs: 10
+    };
+
+    createProduct(product);
+
+    assert.throws(() => createProduct({
+      ...product,
+      name: 'тестовий продукт'
+    }));
+
+    assert.equal(getProductsCount(), 41);
+  } finally {
+    cleanup(directory);
+  }
+});
+
+test('не можна зберегти розрахунок із нульовою вагою', () => {
+  const directory = createTestDirectory();
+
+  try {
+    initializeDatabase(directory);
+
+    assert.throws(() => saveCalculationItem({
+      ...createTestCalculationItem(),
+      grams: 0
+    }));
+
+    assert.equal(getCalculationItems().length, 0);
+  } finally {
+    cleanup(directory);
+  }
+});
+
+test('не можна зберегти розрахунок із від’ємною вагою', () => {
+  const directory = createTestDirectory();
+
+  try {
+    initializeDatabase(directory);
+
+    assert.throws(() => saveCalculationItem({
+      ...createTestCalculationItem(),
+      grams: -100
+    }));
+
+    assert.equal(getCalculationItems().length, 0);
+  } finally {
+    cleanup(directory);
+  }
+});
+
+test('не можна видалити продукт із некоректним ID', () => {
+  const directory = createTestDirectory();
+
+  try {
+    initializeDatabase(directory);
+
+    assert.throws(() => deleteProduct(-1));
+    assert.throws(() => deleteProduct('abc'));
+
+    assert.equal(getProductsCount(), 40);
+  } finally {
+    cleanup(directory);
+  }
+});
+
+test('не можна зберегти розрахунок із некоректним ID', () => {
+  const directory = createTestDirectory();
+
+  try {
+    initializeDatabase(directory);
+
+    assert.throws(() => saveCalculationItem({
+      ...createTestCalculationItem(),
+      entryId: ''
+    }));
+
+    assert.equal(getCalculationItems().length, 0);
+  } finally {
+    cleanup(directory);
+  }
+});

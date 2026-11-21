@@ -1,5 +1,10 @@
 import { getDatabase } from './db.js';
 
+import {
+  validateCalculationItem,
+  validateEntryId
+} from './validation.js';
+
 export function getCalculationItems() {
   const database = getDatabase();
 
@@ -18,7 +23,9 @@ export function getCalculationItems() {
   `).all();
 }
 
+
 export function saveCalculationItem(item) {
+  const valid = validateCalculationItem(item);
   const database = getDatabase();
 
   database.prepare(`
@@ -34,20 +41,24 @@ export function saveCalculationItem(item) {
     )
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
-    item.entryId,
-    item.productId ?? null,
-    item.name,
-    item.grams,
-    item.calories,
-    item.protein,
-    item.fat,
-    item.carbs
+    valid.entryId,
+    valid.productId,
+    valid.name,
+    valid.grams,
+    valid.calories,
+    valid.protein,
+    valid.fat,
+    valid.carbs
   );
 
-  return item;
+  return valid;
 }
 
+
+
 export function deleteCalculationItem(entryId) {
+  validateEntryId(entryId);
+
   const database = getDatabase();
 
   const result = database.prepare(`
