@@ -2,8 +2,22 @@ import React, { useEffect, useState } from 'react';
 import { round, calculate } from './utils/calculations';
 import ProfileCard from './components/ProfileCard';
 import DailyProgress from './components/DailyProgress';
+import DiaryDatePicker from './components/DiaryDatePicker';
+import MealSections, { MEALS } from './components/MealSections';
+
+function getToday() {
+  const now = new Date();
+
+  return [
+    now.getFullYear(),
+    String(now.getMonth() + 1).padStart(2, '0'),
+    String(now.getDate()).padStart(2, '0'),
+  ].join('-');
+}
 
 function App() {
+    const [selectedDate, setSelectedDate] = useState(getToday);
+const [selectedMeal, setSelectedMeal] = useState('breakfast');
   const [search, setSearch] = useState('');
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -74,11 +88,14 @@ const [isSavingEdit, setIsSavingEdit] = useState(false);
 
 useEffect(() => {
   let cancelled = false;
+  setIsLoadingItems(true);
+setItemsError('');
+setItems([]);
 
   async function loadCalculationItems() {
     try {
       const savedItems =
-        await window.calorieAPI.getCalculationItems();
+       await window.calorieAPI.getCalculationItems(selectedDate);
 
       if (!Array.isArray(savedItems)) {
         throw new Error('Некоректні дані списку.');
@@ -106,7 +123,7 @@ useEffect(() => {
   return () => {
     cancelled = true;
   };
-}, []);
+}, [selectedDate]);
 
 
   const filteredProducts = products.filter(product =>
@@ -345,12 +362,14 @@ async function addProduct() {
   const result = calculate(selectedProduct, weight);
 
   const newItem = {
-    ...result,
-    entryId: crypto.randomUUID(),
-    productId: selectedProduct.id,
-    name: selectedProduct.name,
-    grams: weight
-  };
+  ...result,
+  entryId: crypto.randomUUID(),
+  productId: selectedProduct.id,
+  name: selectedProduct.name,
+  grams: weight,
+  entryDate: selectedDate,
+  mealType: selectedMeal
+};
 
   try {
     await window.calorieAPI.saveCalculationItem(newItem);
@@ -454,7 +473,7 @@ async function clearProducts() {
   }
 
   try {
-    await window.calorieAPI.clearCalculationItems();
+    await window.calorieAPI.clearCalculationItems(selectedDate);
 
     setItems([]);
   } catch (error) {
@@ -568,10 +587,32 @@ async function clearProducts() {
   </section>
 )}
 <ProfileCard />
+
+<DiaryDatePicker
+  date={selectedDate}
+  onChange={setSelectedDate}
+/>
+
 <DailyProgress totals={totals} />
         <div className="content">
           <section className="card">
             <h2>Додати продукт</h2>
+            <div className="field">
+  <label htmlFor="selected-meal">Прийом їжі</label>
+
+  <select
+    id="selected-meal"
+    className="meal-select"
+    value={selectedMeal}
+    onChange={event => setSelectedMeal(event.target.value)}
+  >
+    {MEALS.map(meal => (
+      <option key={meal.id} value={meal.id}>
+        {meal.icon} {meal.title}
+      </option>
+    ))}
+  </select>
+</div>
 
             <div className="field product-field">
               <label htmlFor="product-search">
@@ -854,41 +895,11 @@ filteredProducts.map(product => (
   </p>
 )}
 
-            <div className="product-list">
-              {items.length === 0 ? (
-                <p className="empty-list">
-                  Ви ще не додали жодного продукту.
-                </p>
-              ) : (
-                items.map(item => (
-                  <div
-                    className="list-item"
-                    key={item.entryId}
-                  >
-                    <div className="item-info">
-                      <strong>{item.name}</strong>
-                      <span>
-                        {item.grams} г ·{' '}
-                        {round(item.calories)} ккал
-                      </span>
-                    </div>
-
-                    <button
-                      className="delete-button"
-                      type="button"
-                      aria-label={`Видалити ${item.name}`}
-                      disabled={isLoadingItems || Boolean(itemsError)}
-                      onClick={() =>
-                        removeProduct(item.entryId)
-                      }
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
-
+           <MealSections
+  items={items}
+  onDelete={removeProduct}
+  disabled={isLoadingItems || Boolean(itemsError)}
+/>
             <div className="total">
               <h3>Загальний результат</h3>
 
