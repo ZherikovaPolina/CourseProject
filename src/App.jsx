@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { round, calculate } from './utils/calculations';
+import ProfileCard from './components/ProfileCard';
 
 function App() {
   const [search, setSearch] = useState('');
@@ -565,7 +566,7 @@ async function clearProducts() {
     </form>
   </section>
 )}
-
+<ProfileCard />
         <div className="content">
           <section className="card">
             <h2>Додати продукт</h2>
