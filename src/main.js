@@ -20,6 +20,12 @@ import {
   clearCalculationItems
 } from './database/calculationItems.js';
 
+import {
+  getUserProfile,
+  saveUserProfile
+} from './database/profile.js';
+
+
 const createWindow = () => {
   const mainWindow = new BrowserWindow({
     width: 800,
@@ -80,6 +86,14 @@ ipcMain.handle('products:delete', (_event, id) => {
     return clearCalculationItems();
   });
 
+
+  ipcMain.handle('profile:get', () => {
+    return getUserProfile();
+  });
+
+  ipcMain.handle('profile:save', (_event, profile) => {
+    return saveUserProfile(profile);
+  });
 
   createWindow();
 

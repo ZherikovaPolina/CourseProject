@@ -22,6 +22,13 @@ deleteCalculationItem: (entryId) =>
   ipcRenderer.invoke('calculation:delete', entryId),
 
 clearCalculationItems: () =>
-  ipcRenderer.invoke('calculation:clear')
+  ipcRenderer.invoke('calculation:clear'),
+
+getUserProfile: () =>
+  ipcRenderer.invoke('profile:get'),
+
+saveUserProfile: (profile) =>
+  ipcRenderer.invoke('profile:save', profile)
+
 
 });

@@ -78,6 +78,32 @@ db.exec(`
       markDefault.run(product.name);
     }
 
+
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS user_profile (
+        id INTEGER PRIMARY KEY CHECK (id = 1),
+        sex TEXT NOT NULL CHECK (sex IN ('female', 'male')),
+        age INTEGER NOT NULL CHECK (age BETWEEN 18 AND 120),
+        height REAL NOT NULL CHECK (height BETWEEN 100 AND 250),
+        weight REAL NOT NULL CHECK (weight BETWEEN 25 AND 400),
+        activity TEXT NOT NULL CHECK (
+          activity IN (
+            'sedentary',
+            'light',
+            'moderate',
+            'active',
+            'veryActive'
+          )
+        ),
+        goal TEXT NOT NULL CHECK (
+          goal IN ('lose', 'maintain', 'gain')
+        ),
+        protein_goal REAL,
+        fat_goal REAL,
+        carbs_goal REAL
+      );
+    `);
+
     database = db;
     return database;
   } catch (error) {
